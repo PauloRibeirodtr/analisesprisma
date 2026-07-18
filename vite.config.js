@@ -7,6 +7,9 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/admin-prisma.css',
+                'resources/js/admin/contratacao-plano.js',
+                'resources/js/admin/reativacao-assinatura.js',
                 'resources/js/app.js',
             ],
             refresh: true,

@@ -17,6 +17,7 @@ beforeEach(function () {
     $this->verifiedUser = new User([
         'name' => 'Test User',
         'email' => 'test@example.com',
+        'perfil' => 'administrador',
     ]);
     $this->verifiedUser->forceFill([
         'id' => 42,

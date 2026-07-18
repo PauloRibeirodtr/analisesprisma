@@ -1,5 +1,13 @@
 <?php
 
+use JeroenNoten\LaravelAdminLte\Menu\Filters\ActiveFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\GateFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\HrefFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\LangFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\SearchFilter;
+
 return [
 
     /*
@@ -63,12 +71,12 @@ return [
     |
     */
 
-    'logo' => '<b>Admin</b>LTE',
-    'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-    'logo_img_class' => 'brand-image img-circle elevation-3',
+    'logo' => '<b>Análises</b> PRISMA',
+    'logo_img' => 'images/prisma-mark.svg',
+    'logo_img_class' => 'brand-image',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'Admin Logo',
+    'logo_img_alt' => 'Análises Prisma',
 
     /*
     |--------------------------------------------------------------------------
@@ -113,9 +121,9 @@ return [
         'enabled' => true,
         'mode' => 'fullscreen',
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-            'alt' => 'AdminLTE Preloader Image',
-            'effect' => 'animation__shake',
+            'path' => 'images/prisma-mark.svg',
+            'alt' => 'Análises Prisma',
+            'effect' => 'animation__pulse',
             'width' => 60,
             'height' => 60,
         ],
@@ -133,11 +141,11 @@ return [
     |
     */
 
-        'usermenu_enabled' => true,
-        'usermenu_header' => true,
-        'usermenu_header_class' => 'bg-primary',
-        'usermenu_image' => false,
-        'usermenu_desc' => true,
+    'usermenu_enabled' => true,
+    'usermenu_header' => true,
+    'usermenu_header_class' => 'bg-primary',
+    'usermenu_image' => false,
+    'usermenu_desc' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -298,41 +306,60 @@ return [
     */
 
     'menu' => [
-            [
-                'text' => 'MENU PRINCIPAL',
-                'header' => true,
-            ],
+        [
+            'header' => 'MENU PRINCIPAL',
+        ],
 
-            [
-                'text' => 'Dashboard',
-                'route' => 'dashboard',
-                'icon' => 'fas fa-fw fa-tachometer-alt',
-            ],
+        [
+            'text' => 'Dashboard',
+            'route' => 'dashboard',
+            'icon' => 'fas fa-fw fa-tachometer-alt',
+        ],
 
-            [
-                'text' => 'Chillbet',
-                'icon' => 'fas fa-fw fa-dice',
-                'submenu' => [
-                    [
-                        'text' => 'Wheel',
-                        'route' => 'chillbet.wheel',
-                        'icon' => 'fas fa-fw fa-circle-notch',
-                    ],
+        [
+            'text' => 'Chillbet',
+            'icon' => 'fas fa-fw fa-dice',
+            'submenu' => [
+                [
+                    'text' => 'Wheel',
+                    'route' => 'chillbet.wheel',
+                    'icon' => 'fas fa-fw fa-circle-notch',
                 ],
             ],
-
-            [
-                'text' => 'Histórico',
-                'url' => 'historico',
-                'icon' => 'fas fa-fw fa-history',
-            ],
-
-            [
-                'text' => 'Estatísticas',
-                'url' => 'estatisticas',
-                'icon' => 'fas fa-fw fa-chart-bar',
-            ],
         ],
+
+        [
+            'text' => 'Minha Assinatura',
+            'route' => 'minha-assinatura.index',
+            'icon' => 'fas fa-fw fa-id-card',
+        ],
+
+        [
+            'header' => 'ADMINISTRAÇÃO',
+            'can' => 'administrar-clientes',
+        ],
+
+        [
+            'text' => 'Clientes',
+            'route' => 'admin.clientes.index',
+            'icon' => 'fas fa-fw fa-users',
+            'can' => 'administrar-clientes',
+        ],
+
+        [
+            'text' => 'Relatórios',
+            'route' => 'admin.relatorios.index',
+            'icon' => 'fas fa-fw fa-chart-line',
+            'can' => 'administrar-clientes',
+        ],
+
+        [
+            'text' => 'Planos',
+            'route' => 'admin.planos.index',
+            'icon' => 'fas fa-fw fa-layer-group',
+            'can' => 'administrar-planos',
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -347,13 +374,13 @@ return [
     */
 
     'filters' => [
-        JeroenNoten\LaravelAdminLte\Menu\Filters\GateFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\HrefFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\SearchFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\ActiveFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\LangFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter::class,
+        GateFilter::class,
+        HrefFilter::class,
+        SearchFilter::class,
+        ActiveFilter::class,
+        ClassesFilter::class,
+        LangFilter::class,
+        DataFilter::class,
     ],
 
     /*
