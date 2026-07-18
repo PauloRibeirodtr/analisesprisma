@@ -16,6 +16,13 @@ it('renders the guest authentication views', function (string $route, array $par
     'reset password' => ['password.reset', ['token' => 'test-token']],
 ]);
 
+it('does not advertise public registration on the login page', function () {
+    $this->get(route('login'))
+        ->assertSuccessful()
+        ->assertDontSee('Ainda não possui uma conta?')
+        ->assertDontSee('Criar conta');
+});
+
 it('renders the authenticated authentication views', function (string $route) {
     $user = new User([
         'name' => 'Test User',

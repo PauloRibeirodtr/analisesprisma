@@ -105,13 +105,6 @@
     </form>
 @stop
 
-@section('auth_footer')
-    <p>
-        Ainda não possui uma conta?
-        <a href="{{ route('register') }}">Criar conta</a>
-    </p>
-@stop
-
 @section('css')
     <x-auth.prisma-styles />
 @stop
