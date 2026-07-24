@@ -11,7 +11,7 @@ function criarResultadosCronologicos(cores) {
 }
 
 test('encontra o padrão atual e distribui as próximas cores históricas', () => {
-    const padrao = ['BLUE', 'RED', 'BLACK', 'BLUE', 'GREEN', 'RED'];
+    const padrao = ['BLUE', 'RED', 'GREEN', 'RED'];
     const resultados = criarResultadosCronologicos([
         ...padrao,
         'BLACK',
@@ -38,7 +38,7 @@ test('encontra o padrão atual e distribui as próximas cores históricas', () =
 });
 
 test('não conta o padrão atual como ocorrência sem próxima pedra', () => {
-    const padrao = ['BLACK', 'BLUE', 'RED', 'GREEN', 'BLACK', 'RED'];
+    const padrao = ['BLACK', 'GREEN', 'BLACK', 'RED'];
     const analise = analisarPadraoAoVivo(criarResultadosCronologicos(padrao), 250);
 
     assert.equal(analise.padraoCompleto, true);
@@ -47,38 +47,49 @@ test('não conta o padrão atual como ocorrência sem próxima pedra', () => {
 });
 
 test('respeita a quantidade de registros da base selecionada', () => {
-    const padrao = ['BLACK', 'BLUE', 'RED', 'GREEN', 'BLACK', 'RED'];
+    const padrao = ['BLACK', 'GREEN', 'BLACK', 'RED'];
     const resultados = criarResultadosCronologicos([
         ...padrao,
         'GREEN',
         ...padrao,
     ]);
-    const analiseCompleta = analisarPadraoAoVivo(resultados, 13);
-    const analiseReduzida = analisarPadraoAoVivo(resultados, 6);
+    const analiseCompleta = analisarPadraoAoVivo(resultados, 9);
+    const analiseReduzida = analisarPadraoAoVivo(resultados, 4);
 
     assert.equal(analiseCompleta.totalOcorrencias, 1);
-    assert.equal(analiseReduzida.totalRegistros, 6);
+    assert.equal(analiseReduzida.totalRegistros, 4);
     assert.equal(analiseReduzida.totalOcorrencias, 0);
 });
 
-test('permite analisar padrões de quatro, cinco ou seis pedras', () => {
-    const padraoQuatro = ['BLACK', 'BLUE', 'RED', 'GREEN'];
+test('permite analisar padrões de três, quatro ou cinco pedras', () => {
+    const padraoTres = ['BLACK', 'BLUE', 'GREEN'];
     const resultados = criarResultadosCronologicos([
-        ...padraoQuatro,
+        ...padraoTres,
         'RED',
         'BLUE',
-        ...padraoQuatro,
+        ...padraoTres,
     ]);
+    const analiseTres = analisarPadraoAoVivo(resultados, 500, 3);
     const analiseQuatro = analisarPadraoAoVivo(resultados, 250, 4);
     const analiseCinco = analisarPadraoAoVivo(resultados, 250, 5);
-    const analiseSeis = analisarPadraoAoVivo(resultados, 250, 6);
 
+    assert.equal(analiseTres.tamanhoPadrao, 3);
+    assert.deepEqual(analiseTres.padraoAtual, padraoTres);
+    assert.equal(analiseTres.totalOcorrencias, 1);
+    assert.equal(analiseTres.distribuicao.find((item) => item.cor === 'RED').total, 1);
     assert.equal(analiseQuatro.tamanhoPadrao, 4);
-    assert.deepEqual(analiseQuatro.padraoAtual, padraoQuatro);
-    assert.equal(analiseQuatro.totalOcorrencias, 1);
-    assert.equal(analiseQuatro.distribuicao.find((item) => item.cor === 'RED').total, 1);
+    assert.equal(analiseQuatro.padraoAtual.length, 4);
     assert.equal(analiseCinco.tamanhoPadrao, 5);
     assert.equal(analiseCinco.padraoAtual.length, 5);
-    assert.equal(analiseSeis.tamanhoPadrao, 6);
-    assert.equal(analiseSeis.padraoAtual.length, 6);
+});
+
+test('usa quatro pedras quando o tamanho solicitado não é permitido', () => {
+    const analise = analisarPadraoAoVivo(
+        criarResultadosCronologicos(['BLACK', 'BLUE', 'RED', 'GREEN', 'BLACK', 'RED']),
+        500,
+        6,
+    );
+
+    assert.equal(analise.tamanhoPadrao, 4);
+    assert.equal(analise.padraoAtual.length, 4);
 });

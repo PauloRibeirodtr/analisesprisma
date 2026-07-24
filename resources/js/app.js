@@ -8,7 +8,7 @@ if (elemento) {
     const quantidadeAnalise = Number.parseInt(elemento.dataset.analysisLimit, 10);
     const app = createApp(ChillbetWheelPage, {
         quantidadeHistorico: Number.isFinite(quantidadeHistorico) ? quantidadeHistorico : 50,
-        quantidadeAnalise: Number.isFinite(quantidadeAnalise) ? quantidadeAnalise : 250,
+        quantidadeAnalise: Number.isFinite(quantidadeAnalise) ? quantidadeAnalise : 2000,
     });
 
     app.mount(elemento);

@@ -42,7 +42,7 @@
             <div
                 id="chillbet-wheel-app"
                 data-history-limit="50"
-                data-analysis-limit="250"
+                data-analysis-limit="2000"
             ></div>
         </section>
     </main>

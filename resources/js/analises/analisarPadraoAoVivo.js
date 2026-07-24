@@ -1,5 +1,5 @@
 const CORES = ['BLACK', 'BLUE', 'RED', 'GREEN'];
-const TAMANHOS_PADRAO_PERMITIDOS = [4, 5, 6];
+const TAMANHOS_PADRAO_PERMITIDOS = [3, 4, 5];
 
 function converterData(valor) {
     if (!valor) {
@@ -13,12 +13,12 @@ function converterData(valor) {
     return Number.isNaN(data.getTime()) ? null : data;
 }
 
-export function analisarPadraoAoVivo(resultados, quantidade = 250, tamanhoPadrao = 6) {
+export function analisarPadraoAoVivo(resultados, quantidade = 2000, tamanhoPadrao = 4) {
     const quantidadeNormalizada = Math.max(Number.parseInt(quantidade, 10) || 1, 1);
     const tamanhoSolicitado = Number.parseInt(tamanhoPadrao, 10);
     const tamanhoNormalizado = TAMANHOS_PADRAO_PERMITIDOS.includes(tamanhoSolicitado)
         ? tamanhoSolicitado
-        : 6;
+        : 4;
     const registros = resultados
         .slice(0, quantidadeNormalizada)
         .map((resultado) => ({

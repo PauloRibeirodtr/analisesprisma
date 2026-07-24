@@ -22,7 +22,7 @@ function maximo(valores) {
     return valores.length === 0 ? null : Math.max(...valores);
 }
 
-export function analisarVerde(resultados, quantidade = 250) {
+export function analisarVerde(resultados, quantidade = 2000) {
     const quantidadeNormalizada = Math.max(Number.parseInt(quantidade, 10) || 1, 1);
     const registros = resultados
         .slice(0, quantidadeNormalizada)

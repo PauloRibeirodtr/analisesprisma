@@ -52,7 +52,7 @@ it('renders the Chillbet Wheel history for an authenticated user', function () {
         ->assertSee('prisma-wheel-workspace', false)
         ->assertSee('id="chillbet-wheel-app"', false)
         ->assertSee('data-history-limit="50"', false)
-        ->assertSee('data-analysis-limit="250"', false)
+        ->assertSee('data-analysis-limit="2000"', false)
         ->assertSee('type="module"', false);
 });
 

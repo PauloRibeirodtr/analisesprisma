@@ -2,7 +2,7 @@ import { computed, onMounted, onUnmounted, readonly, ref } from 'vue';
 import { io } from 'socket.io-client';
 
 export const CHILLBET_DEFAULT_HISTORY_LIMIT = 300;
-export const CHILLBET_MAX_HISTORY_LIMIT = 1000;
+export const CHILLBET_MAX_HISTORY_LIMIT = 2000;
 
 const HISTORY_ENDPOINT = '/api/chillbet/wheel/ultimos';
 const SOCKET_TOKEN_ENDPOINT = '/api/chillbet/wheel/socket-token';

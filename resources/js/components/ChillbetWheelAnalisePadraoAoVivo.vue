@@ -159,12 +159,12 @@ import { useChillbetWheelFeed } from '../composables/useChillbetWheelFeed';
 const props = defineProps({
     quantidade: {
         type: Number,
-        default: 250,
+        default: 2000,
     },
 });
 
-const tamanhosPadraoDisponiveis = [4, 5, 6];
-const tamanhoPadraoSelecionado = ref(5);
+const tamanhosPadraoDisponiveis = [3, 4, 5];
+const tamanhoPadraoSelecionado = ref(4);
 const { resultados, socketConectado } = useChillbetWheelFeed({ quantidade: props.quantidade });
 const analise = computed(() => analisarPadraoAoVivo(
     resultados.value,

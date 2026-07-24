@@ -9,7 +9,7 @@ beforeEach(function () {
         'chillbet.api_url' => 'https://chillbet.test',
         'chillbet.api_token' => 'test-api-token',
         'chillbet.default_limit' => 300,
-        'chillbet.max_limit' => 1000,
+        'chillbet.max_limit' => 2000,
     ]);
 
     Http::preventStrayRequests();
@@ -40,7 +40,7 @@ it('requires a verified email to access the ChillBet integration', function () {
 
 it('validates the requested history limit', function () {
     $this->actingAs($this->verifiedUser)
-        ->getJson(route('api.chillbet.wheel.latest', ['limit' => 1001]))
+        ->getJson(route('api.chillbet.wheel.latest', ['limit' => 2001]))
         ->assertUnprocessable()
         ->assertJsonValidationErrors('limit');
 });
@@ -71,11 +71,11 @@ it('returns normalized ChillBet history through the protected proxy', function (
     ]);
 
     $this->actingAs($this->verifiedUser)
-        ->getJson(route('api.chillbet.wheel.latest', ['limit' => 1000]))
+        ->getJson(route('api.chillbet.wheel.latest', ['limit' => 2000]))
         ->assertSuccessful()
         ->assertExactJson([
             'tipo' => 'chillbet-wheel-historico',
-            'limit' => 1000,
+            'limit' => 2000,
             'total' => 2,
             'resultados' => [
                 [
@@ -93,7 +93,7 @@ it('returns normalized ChillBet history through the protected proxy', function (
             ],
         ]);
 
-    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://chillbet.test/api/wheel/ultimos?limit=1000'
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://chillbet.test/api/wheel/ultimos?limit=2000'
         && $request->hasHeader('x-api-token', 'test-api-token'));
 });
 

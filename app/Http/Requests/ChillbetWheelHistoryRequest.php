@@ -27,7 +27,7 @@ class ChillbetWheelHistoryRequest extends FormRequest
                 'nullable',
                 'integer',
                 'min:1',
-                'max:'.config('chillbet.max_limit', 1000),
+                'max:'.config('chillbet.max_limit', 2000),
             ],
         ];
     }

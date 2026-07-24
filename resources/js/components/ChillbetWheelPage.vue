@@ -55,7 +55,7 @@ import ChillbetWheelHistorico from './ChillbetWheelHistorico.vue';
 const props = defineProps({
     quantidadeAnalise: {
         type: Number,
-        default: 250,
+        default: 2000,
     },
     quantidadeHistorico: {
         type: Number,
@@ -63,9 +63,9 @@ const props = defineProps({
     },
 });
 
-const quantidadesDisponiveis = [250, 500, 1000];
+const quantidadesDisponiveis = [500, 1000, 2000];
 const quantidadeSelecionada = ref(
-    quantidadesDisponiveis.includes(props.quantidadeAnalise) ? props.quantidadeAnalise : 250,
+    quantidadesDisponiveis.includes(props.quantidadeAnalise) ? props.quantidadeAnalise : 2000,
 );
 const alterandoBase = ref(false);
 const { iniciar, sincronizando } = useChillbetWheelFeed({ iniciarAutomaticamente: false });

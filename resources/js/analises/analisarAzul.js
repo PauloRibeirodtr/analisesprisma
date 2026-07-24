@@ -1,6 +1,6 @@
 import { analisarSequenciasCor } from './analisarSequenciasCor.js';
 
-export function analisarAzul(resultados, quantidade = 250) {
+export function analisarAzul(resultados, quantidade = 2000) {
     const analise = analisarSequenciasCor(resultados, 'BLUE', quantidade);
 
     return {

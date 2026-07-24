@@ -53,7 +53,7 @@ import { useChillbetWheelFeed } from '../composables/useChillbetWheelFeed';
 const props = defineProps({
     quantidade: {
         type: Number,
-        default: 250,
+        default: 2000,
     },
 });
 
