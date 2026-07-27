@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\PlanoController;
 use App\Http\Controllers\Admin\RelatorioController;
 use App\Http\Controllers\ChillbetWheelController;
 use App\Http\Controllers\ChillbetWheelSocketTokenController;
+use App\Http\Controllers\DoubleSocketTokenController;
+use App\Http\Controllers\JanelaPagamentoDoubleBrancoController;
 use App\Http\Controllers\MinhaAssinaturaController;
 use App\Http\Controllers\MinhaSenhaController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +28,20 @@ Route::get('/acesso-indisponivel', AcessoIndisponivelController::class)
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('/dashboard', 'dashboard')
         ->name('dashboard');
+
+    Route::view('/blaze/double-branco', 'blaze-double-branco')
+        ->name('blaze.double-branco');
+
+    Route::get('/api/blaze/double/socket-token', DoubleSocketTokenController::class)
+        ->middleware('throttle:30,1')
+        ->name('blaze.double.socket-token');
+
+    Route::get(
+        '/api/blaze/double/janelas-pagamento',
+        JanelaPagamentoDoubleBrancoController::class,
+    )
+        ->middleware('throttle:60,1')
+        ->name('blaze.double.janelas-pagamento');
 
     Route::get('/minha-assinatura', [
         MinhaAssinaturaController::class,

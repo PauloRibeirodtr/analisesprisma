@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
+import BlazeDoubleBrancoPage from './components/BlazeDoubleBrancoPage.vue';
 import ChillbetWheelPage from './components/ChillbetWheelPage.vue';
 
 const elemento = document.getElementById('chillbet-wheel-app');
@@ -12,4 +13,10 @@ if (elemento) {
     });
 
     app.mount(elemento);
+}
+
+const elementoDouble = document.getElementById('blaze-double-branco-app');
+
+if (elementoDouble) {
+    createApp(BlazeDoubleBrancoPage).mount(elementoDouble);
 }

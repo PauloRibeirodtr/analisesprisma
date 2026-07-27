@@ -329,6 +329,18 @@ return [
         ],
 
         [
+            'text' => 'Blaze',
+            'icon' => 'fas fa-fw fa-fire',
+            'submenu' => [
+                [
+                    'text' => 'Double - Branco',
+                    'route' => 'blaze.double-branco',
+                    'icon' => 'far fa-fw fa-circle',
+                ],
+            ],
+        ],
+
+        [
             'text' => 'Minha Assinatura',
             'route' => 'minha-assinatura.index',
             'icon' => 'fas fa-fw fa-id-card',
