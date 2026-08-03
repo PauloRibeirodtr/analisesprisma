@@ -15,7 +15,11 @@ return new class extends Migration
             $table->foreignId('periodo_recuperacao_id')
                 ->nullable()
                 ->after('ciclo_id')
-                ->constrained('periodos_recuperacao_double_branco')
+                ->constrained(
+                    'periodos_recuperacao_double_branco',
+                    'id',
+                    'janelas_double_recuperacao_foreign',
+                )
                 ->restrictOnDelete();
             $table->dateTime('cancelada_em', 3)
                 ->nullable()
@@ -30,7 +34,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('janelas_pagamento_double_branco', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('periodo_recuperacao_id');
+            $table->dropForeign('janelas_double_recuperacao_foreign');
+            $table->dropColumn('periodo_recuperacao_id');
             $table->dropColumn('cancelada_em');
         });
     }
