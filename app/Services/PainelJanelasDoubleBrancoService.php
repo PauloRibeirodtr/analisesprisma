@@ -41,6 +41,10 @@ class PainelJanelasDoubleBrancoService
                 ),
             )
             ->values();
+        $cicloAtual = CicloDoubleBranco::query()
+            ->abertos()
+            ->latest('id')
+            ->first();
         $janelasAnteriores = JanelaPagamentoDoubleBranco::query()
             ->select([
                 'id',
@@ -56,27 +60,40 @@ class PainelJanelasDoubleBrancoService
             ])
             ->finalizadas()
             ->where('fim_em', '<', $agora)
+            ->where(function ($query) use ($cicloAtual): void {
+                $query->where(
+                    'status',
+                    StatusJanelaPagamentoDoubleBranco::Win,
+                );
+
+                if ($cicloAtual) {
+                    $query->orWhere(function ($query) use (
+                        $cicloAtual,
+                    ): void {
+                        $query
+                            ->where(
+                                'status',
+                                StatusJanelaPagamentoDoubleBranco::Loss,
+                            )
+                            ->where('ciclo_id', $cicloAtual->id);
+                    });
+                }
+            })
             ->orderByDesc('fim_em')
             ->orderByDesc('id')
-            ->limit((int) config('double.painel_anteriores', 5))
+            ->limit((int) config('double.painel_anteriores', 10))
             ->get()
-            ->reverse()
             ->values();
-        $totalAnteriores = $janelasAnteriores->count();
         $anteriores = $janelasAnteriores
             ->map(function (
                 JanelaPagamentoDoubleBranco $janela,
                 int $indice,
-            ) use ($totalAnteriores): array {
+            ): array {
                 return [
                     ...$this->formatarJanela($janela),
-                    'posicaoAnterior' => $totalAnteriores - $indice,
+                    'posicaoAnterior' => $indice + 1,
                 ];
             });
-        $cicloAtual = CicloDoubleBranco::query()
-            ->abertos()
-            ->latest('id')
-            ->first();
         $ultimoWin = JanelaPagamentoDoubleBranco::query()
             ->where('status', StatusJanelaPagamentoDoubleBranco::Win)
             ->whereNotNull('acerto_em')

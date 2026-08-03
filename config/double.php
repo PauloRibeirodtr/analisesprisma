@@ -12,7 +12,7 @@ return [
     'tiros_estimados_por_minuto' => (int) env('DOUBLE_WINDOW_ESTIMATED_SHOTS_PER_MINUTE', 2),
     'tiros_sem_branco_para_recuperacao' => (int) env('DOUBLE_RECOVERY_SHOTS_WITHOUT_WHITE', 35),
     'painel_proximas' => (int) env('DOUBLE_WINDOW_UPCOMING_COUNT', 3),
-    'painel_anteriores' => (int) env('DOUBLE_WINDOW_PREVIOUS_COUNT', 5),
+    'painel_anteriores' => (int) env('DOUBLE_WINDOW_PREVIOUS_COUNT', 10),
     'ws_url' => env('DOUBLE_WS_URL', 'https://gestoranalista.gestorbet.com.br'),
     'ws_path' => env('DOUBLE_WS_PATH', '/double/socket.io'),
     'ws_jwt_secret' => env('DOUBLE_WS_JWT_SECRET'),

@@ -136,48 +136,71 @@
                 <section class="payment-windows__history" aria-labelledby="previous-windows-title">
                     <h3 id="previous-windows-title" class="payment-windows__section-title">
                         <i class="fas fa-chart-bar" aria-hidden="true"></i>
-                        Últimas 5 janelas
+                        Últimas 10 janelas
                     </h3>
 
-                    <div v-if="painel?.anteriores.length" class="payment-windows__history-grid">
-                        <article
-                            v-for="janela in painel.anteriores"
-                            :key="janela.id"
-                            class="payment-window-card payment-window-card--history"
-                            :class="`payment-window-card--${janela.status}`"
-                        >
-                            <span class="payment-window-card__tag">
-                                {{ janela.posicaoAnterior }} anterior
-                            </span>
-                            <h4>
-                                {{ formatarDia(janela.horarioAlvoEm) }}
-                                <span>•</span>
-                                {{ formatarHoraMinuto(janela.horarioAlvoEm) }}
-                            </h4>
-                            <p class="payment-window-card__range">
-                                {{ formatarHorario(janela.inicioEm) }} até
-                                {{ formatarHorario(janela.fimEm) }}
-                            </p>
-                            <div class="payment-window-card__status">
-                                <i
-                                    :class="janela.status === 'win'
-                                        ? 'fas fa-check'
-                                        : 'fas fa-times'"
-                                    aria-hidden="true"
-                                ></i>
-                                {{ janela.status.toUpperCase() }}
-                            </div>
-                            <strong class="payment-window-card__result">
-                                <template v-if="janela.status === 'win'">
-                                    {{ janela.tirosAcumuladosCiclo }}
-                                    <small>tiros</small>
-                                </template>
-                                <template v-else>—</template>
-                            </strong>
-                            <small v-if="janela.fonteIndisponivel" class="payment-window-card__estimated">
-                                Contagem estimada
-                            </small>
-                        </article>
+                    <div v-if="painel?.anteriores.length" class="payment-windows__table-wrap">
+                        <table class="payment-windows__table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Posição</th>
+                                    <th scope="col">Data e horário</th>
+                                    <th scope="col">Intervalo</th>
+                                    <th scope="col">Resultado</th>
+                                    <th scope="col">Tiros</th>
+                                    <th scope="col">Fonte</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="janela in painel.anteriores" :key="janela.id">
+                                    <td>
+                                        <span class="payment-windows__position">
+                                            {{ janela.posicaoAnterior }} anterior
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ formatarDia(janela.horarioAlvoEm) }}</strong>
+                                        <span>{{ formatarHoraMinuto(janela.horarioAlvoEm) }}</span>
+                                    </td>
+                                    <td class="payment-windows__range-cell">
+                                        {{ formatarHorario(janela.inicioEm) }} até
+                                        {{ formatarHorario(janela.fimEm) }}
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="payment-windows__result-badge"
+                                            :class="`payment-windows__result-badge--${janela.status}`"
+                                        >
+                                            <i
+                                                :class="janela.status === 'win'
+                                                    ? 'fas fa-check'
+                                                    : 'fas fa-times'"
+                                                aria-hidden="true"
+                                            ></i>
+                                            {{ janela.status.toUpperCase() }}
+                                        </span>
+                                    </td>
+                                    <td class="payment-windows__shots-cell">
+                                        <template v-if="janela.status === 'win'">
+                                            <strong>{{ janela.tirosAcumuladosCiclo }}</strong>
+                                            <small>tiros</small>
+                                        </template>
+                                        <template v-else>—</template>
+                                    </td>
+                                    <td>
+                                        <span
+                                            v-if="janela.fonteIndisponivel"
+                                            class="payment-windows__estimated"
+                                        >
+                                            Estimada
+                                        </span>
+                                        <span v-else class="payment-windows__source-ok">
+                                            Histórico
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
 
                     <p v-else class="payment-windows__empty">
@@ -483,18 +506,13 @@ function recarregar() {
     font-size: 0.76rem;
 }
 
-.payment-windows__next-grid,
-.payment-windows__history-grid {
+.payment-windows__next-grid {
     display: grid;
     gap: 0.85rem;
 }
 
 .payment-windows__next-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.payment-windows__history-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .payment-window-card {
@@ -518,11 +536,6 @@ function recarregar() {
 .payment-window-card--next {
     min-height: 220px;
     padding: 1rem 1.05rem;
-}
-
-.payment-window-card--history {
-    min-height: 185px;
-    padding: 0.85rem;
 }
 
 .payment-window-card--executando {
@@ -660,6 +673,118 @@ function recarregar() {
     border-top: 1px solid #e9edf5;
 }
 
+.payment-windows__table-wrap {
+    overflow-x: auto;
+    border: 1px solid #dfe5f0;
+    border-radius: 14px;
+}
+
+.payment-windows__table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.payment-windows__table th,
+.payment-windows__table td {
+    padding: 0.75rem 0.85rem;
+    border-bottom: 1px solid #e9edf5;
+    color: var(--prisma-muted);
+    font-size: 0.74rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.payment-windows__table th {
+    background: #f6f8fc;
+    color: var(--prisma-navy);
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.payment-windows__table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.payment-windows__table tbody tr:hover {
+    background: #fafbfe;
+}
+
+.payment-windows__table td strong,
+.payment-windows__table td span {
+    display: block;
+}
+
+.payment-windows__table td strong {
+    color: var(--prisma-navy);
+}
+
+.payment-windows__position {
+    display: inline-flex !important;
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    background: #edf3ff;
+    color: #075be8;
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.payment-windows__range-cell {
+    white-space: nowrap;
+}
+
+.payment-windows__result-badge {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.32rem 0.65rem;
+    border: 1px solid;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.payment-windows__result-badge--win {
+    border-color: #85dfa0;
+    background: #e5f9ea;
+    color: #119437;
+}
+
+.payment-windows__result-badge--loss {
+    border-color: #ff9ba7;
+    background: #fff0f2;
+    color: #db243b;
+}
+
+.payment-windows__shots-cell strong,
+.payment-windows__shots-cell small {
+    display: inline !important;
+}
+
+.payment-windows__shots-cell strong {
+    color: #12a33b !important;
+    font-size: 0.95rem;
+}
+
+.payment-windows__shots-cell small {
+    margin-left: 0.2rem;
+}
+
+.payment-windows__estimated {
+    color: #c8790b;
+    font-weight: 700;
+}
+
+.payment-windows__source-ok {
+    color: #65748a;
+}
+
 .payment-windows__summary {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -732,12 +857,6 @@ function recarregar() {
     border-radius: 12px;
 }
 
-@media (max-width: 1199.98px) {
-    .payment-windows__history-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
 @media (max-width: 991.98px) {
     .payment-windows__intro {
         grid-template-columns: auto minmax(0, 1fr);
@@ -760,8 +879,7 @@ function recarregar() {
 }
 
 @media (max-width: 767.98px) {
-    .payment-windows__next-grid,
-    .payment-windows__history-grid {
+    .payment-windows__next-grid {
         grid-template-columns: 1fr;
     }
 
