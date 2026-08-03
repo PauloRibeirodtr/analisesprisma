@@ -2,6 +2,7 @@
 
 use App\Models\CicloDoubleBranco;
 use App\Models\JanelaPagamentoDoubleBranco;
+use App\Models\PeriodoRecuperacaoDoubleBranco;
 use App\Models\User;
 use App\StatusCicloDoubleBranco;
 use App\StatusJanelaPagamentoDoubleBranco;
@@ -77,4 +78,20 @@ it('retorna três próximas, cinco anteriores e o resumo do ciclo', function () 
         ->assertJsonPath('cicloAtual.totalTiros', 12)
         ->assertJsonPath('cicloAtual.sequenciaLosses', 1)
         ->assertJsonPath('ultimoWin.totalTiros', 12);
+});
+
+it('informa quando a plataforma está em recuperação', function () {
+    PeriodoRecuperacaoDoubleBranco::factory()->create([
+        'iniciado_em' => now()->subMinutes(2),
+        'primeiro_branco_resultado_id' => 40,
+        'primeiro_branco_idblaze' => 'primeiro-branco-painel',
+        'primeiro_branco_em' => now()->subMinute(),
+    ]);
+
+    $this->actingAs(usuarioPainelDouble())
+        ->getJson(route('blaze.double.janelas-pagamento'))
+        ->assertSuccessful()
+        ->assertJsonPath('recuperacao.ativa', true)
+        ->assertJsonPath('recuperacao.brancosRecebidos', 1)
+        ->assertJsonPath('recuperacao.brancosNecessarios', 2);
 });

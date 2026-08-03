@@ -72,3 +72,63 @@ it('consulta o histórico em São Paulo, devolve UTC e ignora duplicatas', funct
         ->and($resultados->last()['resultado_em']->toISOString())
         ->toBe('2026-07-27T13:01:00.000000Z');
 });
+
+it('encontra o gatilho global e os dois brancos não consecutivos', function () {
+    $registros = [[
+        'idblaze' => 'branco-anterior',
+        'created_at' => '2026-07-27 09:59:30',
+        'color' => 0,
+        'roll' => 0,
+    ]];
+
+    foreach (range(1, 35) as $indice) {
+        $registros[] = [
+            'idblaze' => "sem-branco-{$indice}",
+            'created_at' => CarbonImmutable::parse(
+                '2026-07-27 10:00:00',
+                'America/Sao_Paulo',
+            )->addSeconds($indice * 30)->format('Y-m-d H:i:s'),
+            'color' => 1,
+            'roll' => 1,
+        ];
+    }
+
+    $registros[] = $registros[10];
+    DB::connection('historico')->table('blaze')->insert($registros);
+
+    $leitura = app(LeituraHistoricoDoubleService::class);
+    $sequencia = $leitura->buscarAteGatilhoSemBranco(35);
+    $gatilho = $sequencia->last();
+
+    DB::connection('historico')->table('blaze')->insert([
+        [
+            'idblaze' => 'primeiro-branco',
+            'created_at' => '2026-07-27 10:18:00',
+            'color' => 0,
+            'roll' => 0,
+        ],
+        [
+            'idblaze' => 'colorido-entre-brancos',
+            'created_at' => '2026-07-27 10:18:30',
+            'color' => 2,
+            'roll' => 8,
+        ],
+        [
+            'idblaze' => 'segundo-branco',
+            'created_at' => '2026-07-27 10:19:00',
+            'color' => 0,
+            'roll' => 0,
+        ],
+    ]);
+    $brancos = $leitura->buscarBrancosDepois(
+        $gatilho['id'],
+        $gatilho['resultado_em'],
+    );
+
+    expect($sequencia)->toHaveCount(35)
+        ->and($gatilho['idblaze'])->toBe('sem-branco-35')
+        ->and($brancos->pluck('idblaze')->all())->toBe([
+            'primeiro-branco',
+            'segundo-branco',
+        ]);
+});

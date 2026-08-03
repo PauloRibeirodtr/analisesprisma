@@ -63,6 +63,23 @@
                     Exibindo a última atualização disponível. {{ erro }}
                 </div>
 
+                <div
+                    v-if="painel?.recuperacao?.ativa"
+                    class="payment-windows__recovery"
+                    role="status"
+                >
+                    <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                    <div>
+                        <strong>Plataforma em recuperação</strong>
+                        <span>
+                            Janelas e contagem pausadas desde
+                            {{ formatarHorario(painel.recuperacao.iniciadaEm) }}.
+                            {{ painel.recuperacao.brancosRecebidos }} de
+                            {{ painel.recuperacao.brancosNecessarios }} brancos recebidos.
+                        </span>
+                    </div>
+                </div>
+
                 <section aria-labelledby="next-windows-title">
                     <h3 id="next-windows-title" class="payment-windows__section-title">
                         <i class="far fa-clock" aria-hidden="true"></i>
@@ -93,8 +110,17 @@
                                 {{ textoStatus(janela) }}
                             </div>
                             <div class="payment-window-card__shots">
-                                <span>Tiros no ciclo atual</span>
-                                <strong v-if="statusVisual(janela) === 'executando'">
+                                <span>
+                                    {{ statusVisual(janela) === 'cancelada_recuperacao'
+                                        ? 'Tiros preservados no ciclo'
+                                        : 'Tiros no ciclo atual' }}
+                                </span>
+                                <strong
+                                    v-if="[
+                                        'executando',
+                                        'cancelada_recuperacao',
+                                    ].includes(statusVisual(janela))"
+                                >
                                     {{ janela.tirosNoCicloAtual ?? janela.tirosAcumuladosCiclo }}
                                 </strong>
                                 <strong v-else>—</strong>
@@ -276,7 +302,11 @@ function statusVisual(janela) {
     const inicio = new Date(janela.inicioEm).getTime();
     const fim = new Date(janela.fimEm).getTime();
 
-    if (agora >= inicio && agora <= fim && janela.status !== 'win') {
+    if (
+        agora >= inicio
+        && agora <= fim
+        && !['win', 'cancelada_recuperacao'].includes(janela.status)
+    ) {
         return 'executando';
     }
 
@@ -289,6 +319,7 @@ function textoStatus(janela) {
         win: 'Win',
         loss: 'Loss',
         agendada: 'Aguardando',
+        cancelada_recuperacao: 'Cancelada · recuperação',
     }[statusVisual(janela)] || 'Aguardando';
 }
 
@@ -298,6 +329,7 @@ function iconeStatus(janela) {
         win: 'fas fa-check',
         loss: 'fas fa-times',
         agendada: 'far fa-clock',
+        cancelada_recuperacao: 'fas fa-pause',
     }[statusVisual(janela)] || 'far fa-clock';
 }
 
@@ -425,6 +457,32 @@ function recarregar() {
     color: var(--prisma-blue);
 }
 
+.payment-windows__recovery {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #f1c36b;
+    border-radius: 12px;
+    background: #fff8e8;
+    color: #80540a;
+}
+
+.payment-windows__recovery > i {
+    font-size: 1.3rem;
+}
+
+.payment-windows__recovery strong,
+.payment-windows__recovery span {
+    display: block;
+}
+
+.payment-windows__recovery span {
+    margin-top: 0.15rem;
+    font-size: 0.76rem;
+}
+
 .payment-windows__next-grid,
 .payment-windows__history-grid {
     display: grid;
@@ -482,6 +540,10 @@ function recarregar() {
 
 .payment-window-card--loss::after {
     background: #ef3f52;
+}
+
+.payment-window-card--cancelada_recuperacao::after {
+    background: #d99a24;
 }
 
 .payment-window-card__tag {
@@ -543,6 +605,12 @@ function recarregar() {
     border-color: #ff9ba7;
     background: #fff0f2;
     color: #db243b;
+}
+
+.payment-window-card--cancelada_recuperacao .payment-window-card__status {
+    border-color: #f1c36b;
+    background: #fff8e8;
+    color: #80540a;
 }
 
 .payment-window-card__shots {

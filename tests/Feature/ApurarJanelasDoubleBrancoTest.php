@@ -2,10 +2,13 @@
 
 use App\Models\CicloDoubleBranco;
 use App\Models\JanelaPagamentoDoubleBranco;
+use App\Models\PeriodoRecuperacaoDoubleBranco;
 use App\Services\ApuracaoJanelaDoubleBrancoService;
+use App\Services\ControleRecuperacaoDoubleBrancoService;
 use App\Services\LeituraHistoricoDoubleService;
 use App\StatusCicloDoubleBranco;
 use App\StatusJanelaPagamentoDoubleBranco;
+use App\StatusPeriodoRecuperacaoDoubleBranco;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 
@@ -18,6 +21,10 @@ beforeEach(function () {
         'double.finalizacao_grace_seconds' => 0,
         'double.tiros_estimados_por_minuto' => 2,
     ]);
+
+    mock(ControleRecuperacaoDoubleBrancoService::class)
+        ->shouldReceive('atualizar')
+        ->andReturnNull();
 });
 
 function resultadoDoubleTeste(
@@ -142,4 +149,68 @@ it('estima dois tiros por minuto e mantém loss definitivo quando a fonte falha'
 
     expect($janela->fresh()->status)
         ->toBe(StatusJanelaPagamentoDoubleBranco::Loss);
+});
+
+it('cancela a janela no gatilho, preserva seus tiros e retoma o mesmo ciclo', function () {
+    $periodo = PeriodoRecuperacaoDoubleBranco::factory()->create([
+        'status' => StatusPeriodoRecuperacaoDoubleBranco::Encerrada,
+        'gatilho_resultado_id' => 3,
+        'gatilho_idblaze' => 'game-3',
+        'iniciado_em' => '2026-07-27 10:01:10',
+        'primeiro_branco_resultado_id' => 6,
+        'primeiro_branco_idblaze' => 'game-6',
+        'primeiro_branco_em' => '2026-07-27 10:03:30',
+        'segundo_branco_resultado_id' => 8,
+        'segundo_branco_idblaze' => 'game-8',
+        'segundo_branco_em' => '2026-07-27 10:04:30',
+        'encerrado_em' => '2026-07-27 10:04:30',
+    ]);
+    $cancelada = JanelaPagamentoDoubleBranco::factory()->create([
+        'origem_id' => 20,
+        'inicio_em' => '2026-07-27 10:00:00',
+        'fim_em' => '2026-07-27 10:02:59.999',
+    ]);
+    $retomada = JanelaPagamentoDoubleBranco::factory()->create([
+        'origem_id' => 21,
+        'inicio_em' => '2026-07-27 10:05:00',
+        'fim_em' => '2026-07-27 10:07:59.999',
+    ]);
+
+    mock(LeituraHistoricoDoubleService::class)
+        ->shouldReceive('buscarEntre')
+        ->twice()
+        ->andReturn(
+            collect([
+                resultadoDoubleTeste(1, 1, '2026-07-27T10:00:10Z'),
+                resultadoDoubleTeste(2, 2, '2026-07-27T10:00:40Z'),
+                resultadoDoubleTeste(3, 3, '2026-07-27T10:01:10Z'),
+                resultadoDoubleTeste(4, 4, '2026-07-27T10:01:40Z'),
+                resultadoDoubleTeste(5, 5, '2026-07-27T10:02:10Z'),
+            ]),
+            collect([
+                resultadoDoubleTeste(9, 8, '2026-07-27T10:05:10Z'),
+                resultadoDoubleTeste(10, 0, '2026-07-27T10:05:40Z'),
+            ]),
+        );
+
+    app(ApuracaoJanelaDoubleBrancoService::class)->apurar(
+        CarbonImmutable::parse('2026-07-27T10:10:00Z'),
+    );
+
+    $cancelada->refresh();
+    $retomada->refresh();
+    $ciclo = CicloDoubleBranco::query()->sole();
+
+    expect($cancelada->status)
+        ->toBe(StatusJanelaPagamentoDoubleBranco::CanceladaRecuperacao)
+        ->and($cancelada->periodo_recuperacao_id)->toBe($periodo->id)
+        ->and($cancelada->tiros_na_janela)->toBe(3)
+        ->and($cancelada->ordem_no_ciclo)->toBeNull()
+        ->and($retomada->status)->toBe(StatusJanelaPagamentoDoubleBranco::Win)
+        ->and($retomada->ciclo_id)->toBe($cancelada->ciclo_id)
+        ->and($retomada->ordem_no_ciclo)->toBe(1)
+        ->and($retomada->tiros_acumulados_ciclo)->toBe(5)
+        ->and($ciclo->total_tiros)->toBe(5)
+        ->and($ciclo->total_janelas)->toBe(1)
+        ->and($ciclo->total_losses)->toBe(0);
 });

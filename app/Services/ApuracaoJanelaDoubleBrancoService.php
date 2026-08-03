@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\CicloDoubleBranco;
 use App\Models\JanelaPagamentoDoubleBranco;
+use App\Models\PeriodoRecuperacaoDoubleBranco;
 use App\StatusCicloDoubleBranco;
 use App\StatusJanelaPagamentoDoubleBranco;
 use Carbon\CarbonImmutable;
@@ -15,11 +16,18 @@ class ApuracaoJanelaDoubleBrancoService
 {
     public function __construct(
         private LeituraHistoricoDoubleService $leituraHistorico,
+        private ControleRecuperacaoDoubleBrancoService $controleRecuperacao,
     ) {}
 
     public function apurar(?CarbonImmutable $agora = null): int
     {
         $agora ??= CarbonImmutable::now('UTC');
+
+        try {
+            $this->controleRecuperacao->atualizar();
+        } catch (Throwable) {
+        }
+
         $janelaIds = JanelaPagamentoDoubleBranco::query()
             ->pendentesDeApuracao($agora)
             ->orderBy('inicio_em')
@@ -91,12 +99,12 @@ class ApuracaoJanelaDoubleBrancoService
                 || in_array($janela->status, [
                     StatusJanelaPagamentoDoubleBranco::Win,
                     StatusJanelaPagamentoDoubleBranco::Loss,
+                    StatusJanelaPagamentoDoubleBranco::CanceladaRecuperacao,
                 ], true)
             ) {
                 return;
             }
 
-            $ciclo = $this->obterCiclo($janela);
             $fimComCarencia = CarbonImmutable::instance($janela->fim_em)
                 ->utc()
                 ->addSeconds(
@@ -119,6 +127,27 @@ class ApuracaoJanelaDoubleBrancoService
             $acerto = $indiceAcerto !== false
                 ? $resultados->get($indiceAcerto)
                 : null;
+            $periodoRecuperacao = $this->periodoQueIntercepta($janela);
+
+            if (
+                $periodoRecuperacao
+                && ! $this->acertoAnteriorAoPeriodo(
+                    $acerto,
+                    $periodoRecuperacao,
+                )
+            ) {
+                $this->cancelarPorRecuperacao(
+                    $janela,
+                    $periodoRecuperacao,
+                    $resultados,
+                    $fonteDisponivel,
+                    $agora,
+                );
+
+                return;
+            }
+
+            $ciclo = $this->obterCiclo($janela);
 
             if (! $fonteDisponivel && ! $janelaEncerrada) {
                 $janela->forceFill([
@@ -160,6 +189,101 @@ class ApuracaoJanelaDoubleBrancoService
 
             $this->atualizarTotaisCiclo($ciclo, $janela);
         }, attempts: 3);
+    }
+
+    private function periodoQueIntercepta(
+        JanelaPagamentoDoubleBranco $janela,
+    ): ?PeriodoRecuperacaoDoubleBranco {
+        return PeriodoRecuperacaoDoubleBranco::query()
+            ->where('iniciado_em', '<=', $janela->fim_em)
+            ->where(function ($query) use ($janela): void {
+                $query
+                    ->whereNull('encerrado_em')
+                    ->orWhere('encerrado_em', '>=', $janela->inicio_em);
+            })
+            ->oldest('iniciado_em')
+            ->oldest('id')
+            ->first();
+    }
+
+    /**
+     * @param  array{
+     *     id: int,
+     *     idblaze: string,
+     *     roll: int,
+     *     resultado_em: CarbonImmutable
+     * }|null  $acerto
+     */
+    private function acertoAnteriorAoPeriodo(
+        ?array $acerto,
+        PeriodoRecuperacaoDoubleBranco $periodo,
+    ): bool {
+        if (! $acerto) {
+            return false;
+        }
+
+        $horarioAcerto = $acerto['resultado_em'];
+        $horarioGatilho = CarbonImmutable::instance(
+            $periodo->iniciado_em,
+        )->utc();
+
+        return $horarioAcerto->lessThan($horarioGatilho)
+            || (
+                $horarioAcerto->equalTo($horarioGatilho)
+                && $acerto['id'] < $periodo->gatilho_resultado_id
+            );
+    }
+
+    /**
+     * @param  Collection<int, array{
+     *     id: int,
+     *     idblaze: string,
+     *     roll: int,
+     *     resultado_em: CarbonImmutable
+     * }>  $resultados
+     */
+    private function cancelarPorRecuperacao(
+        JanelaPagamentoDoubleBranco $janela,
+        PeriodoRecuperacaoDoubleBranco $periodo,
+        Collection $resultados,
+        bool $fonteDisponivel,
+        CarbonImmutable $agora,
+    ): void {
+        $horarioGatilho = CarbonImmutable::instance(
+            $periodo->iniciado_em,
+        )->utc();
+        $tirosAteGatilho = $fonteDisponivel
+            ? $resultados->filter(function (array $resultado) use (
+                $horarioGatilho,
+                $periodo,
+            ): bool {
+                return $resultado['resultado_em']->lessThan($horarioGatilho)
+                    || (
+                        $resultado['resultado_em']->equalTo($horarioGatilho)
+                        && $resultado['id'] <= $periodo->gatilho_resultado_id
+                    );
+            })->count()
+            : $janela->tiros_na_janela;
+        $ciclo = $janela->ciclo_id
+            ? $this->obterCiclo($janela)
+            : ($tirosAteGatilho > 0 ? $this->obterCiclo($janela) : null);
+
+        $janela->forceFill([
+            'periodo_recuperacao_id' => $periodo->id,
+            'status' => StatusJanelaPagamentoDoubleBranco::CanceladaRecuperacao,
+            'ordem_no_ciclo' => null,
+            'tiros_na_janela' => $tirosAteGatilho,
+            'acerto_idblaze' => null,
+            'acerto_em' => null,
+            'fonte_indisponivel' => ! $fonteDisponivel,
+            'apurada_em' => $agora,
+            'finalizada_em' => $horarioGatilho,
+            'cancelada_em' => $horarioGatilho,
+        ])->save();
+
+        if ($ciclo) {
+            $this->atualizarTotaisCiclo($ciclo, $janela);
+        }
     }
 
     private function obterCiclo(
@@ -204,7 +328,13 @@ class ApuracaoJanelaDoubleBrancoService
             ->whereBelongsTo($ciclo, 'ciclo');
         $totalTiros = (int) (clone $janelasDoCiclo)
             ->sum('tiros_na_janela');
-        $totalJanelas = (int) (clone $janelasDoCiclo)->count();
+        $totalJanelas = (int) (clone $janelasDoCiclo)
+            ->where(
+                'status',
+                '<>',
+                StatusJanelaPagamentoDoubleBranco::CanceladaRecuperacao,
+            )
+            ->count();
         $totalLosses = (int) (clone $janelasDoCiclo)
             ->where('status', StatusJanelaPagamentoDoubleBranco::Loss)
             ->count();

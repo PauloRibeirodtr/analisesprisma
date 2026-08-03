@@ -27,6 +27,7 @@ class JanelaPagamentoDoubleBranco extends Model
     protected $fillable = [
         'origem_id',
         'ciclo_id',
+        'periodo_recuperacao_id',
         'inicio_em',
         'fim_em',
         'quantidade_velas_crash',
@@ -41,11 +42,20 @@ class JanelaPagamentoDoubleBranco extends Model
         'sincronizada_em',
         'apurada_em',
         'finalizada_em',
+        'cancelada_em',
     ];
 
     public function ciclo(): BelongsTo
     {
         return $this->belongsTo(CicloDoubleBranco::class, 'ciclo_id');
+    }
+
+    public function periodoRecuperacao(): BelongsTo
+    {
+        return $this->belongsTo(
+            PeriodoRecuperacaoDoubleBranco::class,
+            'periodo_recuperacao_id',
+        );
     }
 
     public function scopePendentesDeApuracao(
@@ -72,6 +82,7 @@ class JanelaPagamentoDoubleBranco extends Model
     {
         return [
             'origem_id' => 'integer',
+            'periodo_recuperacao_id' => 'integer',
             'inicio_em' => 'datetime',
             'fim_em' => 'datetime',
             'quantidade_velas_crash' => 'integer',
@@ -85,6 +96,7 @@ class JanelaPagamentoDoubleBranco extends Model
             'sincronizada_em' => 'datetime',
             'apurada_em' => 'datetime',
             'finalizada_em' => 'datetime',
+            'cancelada_em' => 'datetime',
         ];
     }
 }

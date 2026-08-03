@@ -2,7 +2,13 @@ import { onMounted, onUnmounted, readonly, ref } from 'vue';
 
 const ENDPOINT = '/api/blaze/double/janelas-pagamento';
 const INTERVALO_ATUALIZACAO_MS = 10_000;
-const STATUS_VALIDOS = new Set(['agendada', 'executando', 'win', 'loss']);
+const STATUS_VALIDOS = new Set([
+    'agendada',
+    'executando',
+    'win',
+    'loss',
+    'cancelada_recuperacao',
+]);
 
 const painel = ref(null);
 const carregando = ref(false);
@@ -78,6 +84,31 @@ export function normalizarPainelJanelas(payload) {
         return null;
     }
 
+    const recuperacao = payload.recuperacao
+        && typeof payload.recuperacao === 'object'
+        && !Array.isArray(payload.recuperacao)
+        ? {
+            ativa: Boolean(payload.recuperacao.ativa),
+            iniciadaEm: payload.recuperacao.iniciadaEm
+                ? dataValida(payload.recuperacao.iniciadaEm)
+                : null,
+            brancosRecebidos: Math.min(
+                Math.max(Number(payload.recuperacao.brancosRecebidos) || 0, 0),
+                2,
+            ),
+            brancosNecessarios: 2,
+        }
+        : {
+            ativa: false,
+            iniciadaEm: null,
+            brancosRecebidos: 0,
+            brancosNecessarios: 2,
+        };
+
+    if (recuperacao.ativa && !recuperacao.iniciadaEm) {
+        return null;
+    }
+
     const proximas = payload.proximas
         .map(normalizarJanelaPagamento)
         .filter(Boolean);
@@ -100,6 +131,7 @@ export function normalizarPainelJanelas(payload) {
             : null,
         proximas,
         anteriores,
+        recuperacao,
         cicloAtual: payload.cicloAtual ? {
             id: Number(payload.cicloAtual.id),
             ordemJanela: Math.max(

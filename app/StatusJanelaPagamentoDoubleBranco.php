@@ -8,4 +8,5 @@ enum StatusJanelaPagamentoDoubleBranco: string
     case Executando = 'executando';
     case Win = 'win';
     case Loss = 'loss';
+    case CanceladaRecuperacao = 'cancelada_recuperacao';
 }

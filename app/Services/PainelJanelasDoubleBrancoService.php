@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\CicloDoubleBranco;
 use App\Models\JanelaPagamentoDoubleBranco;
+use App\Models\PeriodoRecuperacaoDoubleBranco;
 use App\StatusJanelaPagamentoDoubleBranco;
 use Carbon\CarbonImmutable;
 
@@ -84,9 +85,24 @@ class PainelJanelasDoubleBrancoService
                 'acerto_em',
                 'tiros_acumulados_ciclo',
             ]);
+        $recuperacaoAtiva = PeriodoRecuperacaoDoubleBranco::query()
+            ->ativas()
+            ->latest('id')
+            ->first();
         $atualizadoEm = JanelaPagamentoDoubleBranco::query()
             ->latest('updated_at')
             ->value('updated_at');
+        $recuperacaoAtualizadaEm = $recuperacaoAtiva?->updated_at;
+
+        if (
+            $recuperacaoAtualizadaEm
+            && (
+                ! $atualizadoEm
+                || $recuperacaoAtualizadaEm->greaterThan($atualizadoEm)
+            )
+        ) {
+            $atualizadoEm = $recuperacaoAtualizadaEm;
+        }
 
         return [
             'tipo' => 'double-branco-janelas-pagamento',
@@ -97,6 +113,21 @@ class PainelJanelasDoubleBrancoService
                 : null,
             'proximas' => $proximas,
             'anteriores' => $anteriores,
+            'recuperacao' => $recuperacaoAtiva ? [
+                'ativa' => true,
+                'iniciadaEm' => $this->iso(
+                    CarbonImmutable::instance($recuperacaoAtiva->iniciado_em),
+                ),
+                'brancosRecebidos' => $recuperacaoAtiva->primeiro_branco_em
+                    ? 1
+                    : 0,
+                'brancosNecessarios' => 2,
+            ] : [
+                'ativa' => false,
+                'iniciadaEm' => null,
+                'brancosRecebidos' => 0,
+                'brancosNecessarios' => 2,
+            ],
             'cicloAtual' => $cicloAtual ? [
                 'id' => $cicloAtual->id,
                 'ordemJanela' => $cicloAtual->total_janelas,

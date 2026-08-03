@@ -65,4 +65,39 @@ test('normaliza as coleções e o ciclo atual do painel', () => {
         totalTiros: 30,
         sequenciaLosses: 2,
     });
+    assert.deepEqual(payload.recuperacao, {
+        ativa: false,
+        iniciadaEm: null,
+        brancosRecebidos: 0,
+        brancosNecessarios: 2,
+    });
+});
+
+test('normaliza janela cancelada e recuperação ativa', () => {
+    const payload = normalizarPainelJanelas({
+        proximas: [{
+            id: 1,
+            status: 'cancelada_recuperacao',
+            inicioEm: '2026-07-27T12:00:00.000Z',
+            fimEm: '2026-07-27T12:02:59.000Z',
+            horarioAlvoEm: '2026-07-27T12:01:00.000Z',
+            tirosNaJanela: 3,
+            tirosAcumuladosCiclo: 18,
+        }],
+        anteriores: [],
+        recuperacao: {
+            ativa: true,
+            iniciadaEm: '2026-07-27T12:01:10.000Z',
+            brancosRecebidos: 1,
+            brancosNecessarios: 2,
+        },
+    });
+
+    assert.equal(payload.proximas[0].status, 'cancelada_recuperacao');
+    assert.deepEqual(payload.recuperacao, {
+        ativa: true,
+        iniciadaEm: '2026-07-27T12:01:10.000Z',
+        brancosRecebidos: 1,
+        brancosNecessarios: 2,
+    });
 });
