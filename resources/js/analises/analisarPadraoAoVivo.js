@@ -1,5 +1,6 @@
 const CORES = ['BLACK', 'BLUE', 'RED', 'GREEN'];
 const TAMANHOS_PADRAO_PERMITIDOS = [3, 4, 5];
+const MAXIMO_RESULTADOS_POS_PADRAO = 5;
 
 function converterData(valor) {
     if (!valor) {
@@ -34,6 +35,7 @@ export function analisarPadraoAoVivo(resultados, quantidade = 2000, tamanhoPadra
         });
     const padraoAtual = registros.slice(-tamanhoNormalizado).map((resultado) => resultado.cor);
     const contagemProximasCores = Object.fromEntries(CORES.map((cor) => [cor, 0]));
+    const ocorrenciasPosPadrao = [];
 
     if (padraoAtual.length === tamanhoNormalizado) {
         for (let inicio = 0; inicio + tamanhoNormalizado < registros.length; inicio += 1) {
@@ -42,7 +44,10 @@ export function analisarPadraoAoVivo(resultados, quantidade = 2000, tamanhoPadra
             ));
 
             if (corresponde) {
-                contagemProximasCores[registros[inicio + tamanhoNormalizado].cor] += 1;
+                const resultadoPosPadrao = registros[inicio + tamanhoNormalizado];
+
+                contagemProximasCores[resultadoPosPadrao.cor] += 1;
+                ocorrenciasPosPadrao.push(resultadoPosPadrao);
             }
         }
     }
@@ -69,5 +74,6 @@ export function analisarPadraoAoVivo(resultados, quantidade = 2000, tamanhoPadra
         totalOcorrencias,
         distribuicao,
         coresMaisFrequentes,
+        resultadosPosPadrao: ocorrenciasPosPadrao.slice(-MAXIMO_RESULTADOS_POS_PADRAO),
     };
 }

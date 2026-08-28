@@ -35,6 +35,10 @@ test('encontra o padrão atual e distribui as próximas cores históricas', () =
     assert.equal(distribuicao.RED.total, 0);
     assert.equal(distribuicao.GREEN.total, 0);
     assert.equal(analise.coresMaisFrequentes.length, 2);
+    assert.deepEqual(
+        analise.resultadosPosPadrao.map((resultado) => resultado.cor),
+        ['BLACK', 'BLUE'],
+    );
 });
 
 test('não conta o padrão atual como ocorrência sem próxima pedra', () => {
@@ -57,8 +61,10 @@ test('respeita a quantidade de registros da base selecionada', () => {
     const analiseReduzida = analisarPadraoAoVivo(resultados, 4);
 
     assert.equal(analiseCompleta.totalOcorrencias, 1);
+    assert.equal(analiseCompleta.resultadosPosPadrao.length, 1);
     assert.equal(analiseReduzida.totalRegistros, 4);
     assert.equal(analiseReduzida.totalOcorrencias, 0);
+    assert.equal(analiseReduzida.resultadosPosPadrao.length, 0);
 });
 
 test('permite analisar padrões de três, quatro ou cinco pedras', () => {
@@ -92,4 +98,23 @@ test('usa quatro pedras quando o tamanho solicitado não é permitido', () => {
 
     assert.equal(analise.tamanhoPadrao, 4);
     assert.equal(analise.padraoAtual.length, 4);
+});
+
+test('limita o histórico pós-padrão às cinco ocorrências mais recentes', () => {
+    const padrao = ['BLACK', 'BLUE', 'RED'];
+    const cores = [];
+
+    for (let indice = 0; indice < 7; indice += 1) {
+        cores.push(...padrao, indice % 2 === 0 ? 'GREEN' : 'BLUE');
+    }
+
+    cores.push(...padrao);
+
+    const analise = analisarPadraoAoVivo(criarResultadosCronologicos(cores), 2000, 3);
+
+    assert.equal(analise.resultadosPosPadrao.length, 5);
+    assert.deepEqual(
+        analise.resultadosPosPadrao.map((resultado) => resultado.gameId),
+        [12, 16, 20, 24, 28],
+    );
 });

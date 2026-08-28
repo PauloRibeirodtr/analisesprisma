@@ -79,7 +79,7 @@
                     </div>
                 </section>
 
-                <section class="col-lg-5 live-pattern__section live-pattern__distribution">
+                <section class="col-lg-8 live-pattern__section live-pattern__distribution">
                     <h4>Distribuição histórica da próxima cor</h4>
 
                     <div
@@ -109,39 +109,38 @@
                         <small>{{ item.total }}x</small>
                     </div>
                 </section>
-
-                <aside class="col-lg-3 live-pattern__insight">
-                    <div class="live-pattern__insight-box">
-                        <span class="live-pattern__insight-icon" aria-hidden="true">
-                            <i class="fas fa-crosshairs"></i>
-                        </span>
-
-                        <p v-if="analise.totalOcorrencias === 0">
-                            Este padrão ainda não possui uma ocorrência anterior completa na base selecionada.
-                        </p>
-                        <p v-else-if="analise.coresMaisFrequentes.length === 1">
-                            Após esse padrão, <strong>{{ nomeCor(analise.coresMaisFrequentes[0].cor) }}</strong>
-                            foi a próxima cor em
-                            <strong>{{ formatarPercentual(analise.coresMaisFrequentes[0].percentual) }}</strong>
-                            das ocorrências.
-                        </p>
-                        <p v-else>
-                            Houve empate entre
-                            <strong>{{ nomesCoresMaisFrequentes }}</strong>, com
-                            <strong>{{ formatarPercentual(analise.coresMaisFrequentes[0].percentual) }}</strong>
-                            para cada cor.
-                        </p>
-
-                        <div class="live-pattern__sample">
-                            <i class="fas fa-shield-alt" aria-hidden="true"></i>
-                            <span>
-                                <strong>{{ classificacaoAmostra }}</strong>
-                                Baseado em {{ analise.totalOcorrencias }} ocorrências.
-                            </span>
-                        </div>
-                    </div>
-                </aside>
             </div>
+
+            <section class="live-pattern__history" aria-labelledby="live-pattern-history-title">
+                <div class="live-pattern__history-heading">
+                    <h4 id="live-pattern-history-title">Últimos resultados após esse padrão</h4>
+                    <span>Até 5 ocorrências mais recentes</span>
+                </div>
+
+                <div
+                    v-if="analise.resultadosPosPadrao.length"
+                    class="live-pattern__history-results"
+                    aria-label="Resultados mais recentes após o padrão atual"
+                >
+                    <figure
+                        v-for="(resultado, indice) in analise.resultadosPosPadrao"
+                        :key="chaveResultado(resultado, indice)"
+                        class="live-pattern__history-result"
+                    >
+                        <span
+                            class="live-pattern__history-stone"
+                            :class="classeCor(resultado.cor)"
+                            role="img"
+                            :aria-label="`Resultado pós-padrão: ${nomeCor(resultado.cor)}`"
+                        ></span>
+                        <figcaption>{{ formatarHorario(resultado.data) }}</figcaption>
+                    </figure>
+                </div>
+
+                <p v-else class="live-pattern__history-empty">
+                    Nenhuma ocorrência anterior completa encontrada na base selecionada.
+                </p>
+            </section>
 
             <p class="live-pattern__disclaimer">
                 <i class="fas fa-info-circle" aria-hidden="true"></i>
@@ -171,24 +170,10 @@ const analise = computed(() => analisarPadraoAoVivo(
     props.quantidade,
     tamanhoPadraoSelecionado.value,
 ));
-const nomesCoresMaisFrequentes = computed(() => analise.value.coresMaisFrequentes
-    .map((item) => nomeCor(item.cor))
-    .join(' e '));
-const classificacaoAmostra = computed(() => {
-    if (analise.value.totalOcorrencias === 0) {
-        return 'Sem amostra histórica';
-    }
 
-    if (analise.value.totalOcorrencias < 10) {
-        return 'Amostra pequena';
-    }
-
-    if (analise.value.totalOcorrencias < 30) {
-        return 'Amostra moderada';
-    }
-
-    return 'Amostra ampla';
-});
+function chaveResultado(resultado, indice) {
+    return `historico-${resultado.gameId || resultado.id || resultado.data || indice}-${indice}`;
+}
 
 function nomeCor(cor) {
     return {
@@ -213,6 +198,27 @@ function formatarPercentual(percentual) {
         minimumFractionDigits: 0,
     }).format(percentual)}%`;
 }
+
+function formatarHorario(valor) {
+    if (!valor) {
+        return '--:--';
+    }
+
+    const valorIso = String(valor).replace(' ', 'T');
+    const possuiFuso = /(Z|[+-]\d{2}:?\d{2})$/i.test(valorIso);
+    const data = new Date(possuiFuso ? valorIso : `${valorIso}-03:00`);
+
+    if (Number.isNaN(data.getTime())) {
+        return String(valor).split(' ')[1]?.slice(0, 5) || '--:--';
+    }
+
+    return data.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Sao_Paulo',
+        hour12: false,
+    });
+}
 </script>
 
 <style scoped>
@@ -225,7 +231,6 @@ function formatarPercentual(percentual) {
 .live-pattern__title,
 .live-pattern__status,
 .live-pattern__color-label,
-.live-pattern__sample,
 .live-pattern__disclaimer {
     align-items: center;
     display: flex;
@@ -250,8 +255,7 @@ function formatarPercentual(percentual) {
     margin: 0.2rem 0 0;
 }
 
-.live-pattern__title-icon,
-.live-pattern__insight-icon {
+.live-pattern__title-icon {
     align-items: center;
     background: #4c22ff;
     border-radius: 50%;
@@ -452,45 +456,62 @@ function formatarPercentual(percentual) {
     color: #6c757d;
 }
 
-.live-pattern__insight-box {
-    background: #f4f5ff;
-    border: 1px solid #dfe2ff;
-    border-radius: 0.65rem;
-    height: 100%;
-    padding: 1rem;
+.live-pattern__history {
+    align-items: center;
+    border-top: 1px solid #dee2e6;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(190px, 0.35fr) minmax(0, 1fr);
+    margin-top: 1rem;
+    padding-top: 1rem;
 }
 
-.live-pattern__insight-icon {
-    background: #e4e6ff;
-    color: #4c22ff;
-    height: 42px;
-    margin-bottom: 0.75rem;
-    width: 42px;
+.live-pattern__history-heading h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 0;
 }
 
-.live-pattern__insight-box > p {
-    color: #30345b;
-    font-size: 0.84rem;
-    line-height: 1.55;
-}
-
-.live-pattern__sample {
-    border-top: 1px dashed #adb5ff;
-    color: #4c22ff;
-    font-size: 0.7rem;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-}
-
-.live-pattern__sample span {
+.live-pattern__history-heading span {
     color: #6c757d;
-    display: flex;
-    flex-direction: column;
+    font-size: 0.7rem;
 }
 
-.live-pattern__sample strong {
-    color: #4c22ff;
+.live-pattern__history-results {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(0.7rem, 2vw, 1.5rem);
+}
+
+.live-pattern__history-result {
+    align-items: center;
+    display: flex;
+    flex: 0 0 38px;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin: 0;
+}
+
+.live-pattern__history-stone {
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    border-radius: 50%;
+    box-shadow: 0 0.15rem 0.4rem rgba(0, 0, 0, 0.2);
+    display: block;
+    height: 38px;
+    width: 38px;
+}
+
+.live-pattern__history-result figcaption {
+    color: #495057;
+    font-size: 0.68rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.live-pattern__history-empty {
+    color: #6c757d;
+    font-size: 0.76rem;
+    margin: 0;
 }
 
 .live-pattern__disclaimer {
@@ -504,13 +525,16 @@ function formatarPercentual(percentual) {
 }
 
 @media (max-width: 991.98px) {
-    .live-pattern__distribution,
-    .live-pattern__insight {
+    .live-pattern__distribution {
         margin-top: 1.25rem;
     }
 
     .live-pattern__distribution {
         border-left: 0;
+    }
+
+    .live-pattern__history {
+        grid-template-columns: 1fr;
     }
 }
 
