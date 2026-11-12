@@ -13,5 +13,6 @@ export function analisarPreto(resultados, quantidade = 2000) {
         mediaPretosSemDuplo: analise.mediaIsoladosSemDuplo,
         mediaMinutosSemDuplo: analise.mediaMinutosSemDuplo,
         ultimoPretoEm: analise.ultimoResultadoEm,
+        ultimoPretoDuploEm: analise.ultimoDuploEm,
     };
 }

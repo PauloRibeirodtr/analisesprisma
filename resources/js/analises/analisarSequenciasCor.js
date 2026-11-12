@@ -107,5 +107,6 @@ export function analisarSequenciasCor(resultados, cor, quantidade = 2000) {
         mediaIsoladosSemDuplo: media(isoladosSemDuplo),
         mediaMinutosSemDuplo: media(minutosSemDuplo),
         ultimoResultadoEm: ultimoResultado?.dataConvertida ?? null,
+        ultimoDuploEm: ultimoDuplo?.dataConvertida ?? null,
     };
 }

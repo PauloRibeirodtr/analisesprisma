@@ -13,5 +13,6 @@ export function analisarAzul(resultados, quantidade = 2000) {
         mediaAzuisSemDuplo: analise.mediaIsoladosSemDuplo,
         mediaMinutosSemDuplo: analise.mediaMinutosSemDuplo,
         ultimoAzulEm: analise.ultimoResultadoEm,
+        ultimoAzulDuploEm: analise.ultimoDuploEm,
     };
 }

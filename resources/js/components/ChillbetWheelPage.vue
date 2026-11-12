@@ -35,7 +35,6 @@
             <ChillbetWheelAnaliseAzul :quantidade="quantidadeSelecionada" />
             <ChillbetWheelAnaliseVermelho :quantidade="quantidadeSelecionada" />
             <ChillbetWheelAnalisePreto :quantidade="quantidadeSelecionada" />
-            <ChillbetWheelAnaliseVerde :quantidade="quantidadeSelecionada" />
         </div>
 
         <ChillbetWheelHistorico :quantidade="quantidadeHistorico" />
@@ -48,7 +47,6 @@ import { useChillbetWheelFeed } from '../composables/useChillbetWheelFeed';
 import ChillbetWheelAnaliseAzul from './ChillbetWheelAnaliseAzul.vue';
 import ChillbetWheelAnalisePadraoAoVivo from './ChillbetWheelAnalisePadraoAoVivo.vue';
 import ChillbetWheelAnalisePreto from './ChillbetWheelAnalisePreto.vue';
-import ChillbetWheelAnaliseVerde from './ChillbetWheelAnaliseVerde.vue';
 import ChillbetWheelAnaliseVermelho from './ChillbetWheelAnaliseVermelho.vue';
 import ChillbetWheelHistorico from './ChillbetWheelHistorico.vue';
 

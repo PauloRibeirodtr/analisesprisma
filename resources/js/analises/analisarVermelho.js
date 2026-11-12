@@ -13,5 +13,6 @@ export function analisarVermelho(resultados, quantidade = 2000) {
         mediaVermelhosSemDuplo: analise.mediaIsoladosSemDuplo,
         mediaMinutosSemDuplo: analise.mediaMinutosSemDuplo,
         ultimoVermelhoEm: analise.ultimoResultadoEm,
+        ultimoVermelhoDuploEm: analise.ultimoDuploEm,
     };
 }

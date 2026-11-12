@@ -1,5 +1,5 @@
 <template>
-    <div class="col-md-3 col-sm-6 col-6 d-flex">
+    <div class="col-md-4 col-sm-6 col-6 d-flex">
         <section class="card card-primary card-outline blue-analysis w-100">
             <header class="card-header blue-analysis__header">
                 <h3 class="card-title font-weight-bold">Análise de Azul</h3>
@@ -31,8 +31,8 @@
                         <dd>{{ formatarNumero(analise.mediaAzuisSemDuplo) }}</dd>
                     </div>
                     <div>
-                        <dt>Último azul</dt>
-                        <dd>{{ formatarHora(analise.ultimoAzulEm) }}</dd>
+                        <dt>Último duplo azul</dt>
+                        <dd>{{ formatarHora(analise.ultimoAzulDuploEm) }}</dd>
                     </div>
                 </dl>
             </div>
